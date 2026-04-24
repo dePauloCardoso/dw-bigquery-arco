@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: dw-arco
+    schema: bronze
+    tables:
+      - name: wms_order_hdr
+      - name: wms_order_dtl
