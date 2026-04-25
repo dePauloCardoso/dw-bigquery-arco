@@ -19,7 +19,7 @@ class WMSClient:
             "Accept": "application/json",
         })
 
-    def get_records(self, endpoint: str, last_hours: int = 24) -> list:
+    def get_records(self, endpoint: str, last_hours: int = 2) -> list:
         now = datetime.now(SP_TZ)
         mod_ts_lt  = now.strftime("%Y-%m-%dT%H:%M:%S")
         mod_ts_gte = (now - timedelta(hours=last_hours)).strftime("%Y-%m-%dT%H:%M:%S")

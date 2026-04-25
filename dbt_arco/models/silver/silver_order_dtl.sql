@@ -120,3 +120,8 @@ from {{ source('bronze', 'wms_order_dtl') }}
 {% if is_incremental() %}
 where _ingested_at > (select max(_ingested_at) from {{ this }})
 {% endif %}
+
+qualify row_number() over (
+    partition by cast(JSON_VALUE(_raw, '$.id') as INT64)
+    order by timestamp(JSON_VALUE(_raw, '$.mod_ts')) desc
+) = 1

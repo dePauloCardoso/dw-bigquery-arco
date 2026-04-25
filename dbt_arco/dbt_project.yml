@@ -31,6 +31,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   dbt_arco:
-    # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
+    silver:
+      +schema: silver
+      +database: dw-arco
+    gold:
+      +schema: gold
+      +database: dw-arco

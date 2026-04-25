@@ -7,4 +7,4 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    run(last_hours=24)
+    run(last_hours=2)
