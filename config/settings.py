@@ -1,4 +1,5 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     # Oracle WMS
@@ -8,9 +9,9 @@ class Settings(BaseSettings):
     # BigQuery
     GCP_PROJECT_ID: str
     GCP_DATASET_BRONZE: str = "bronze"
-    GCP_CREDENTIALS_PATH: str
+    GCP_CREDENTIALS_PATH: str | None = None
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 settings = Settings()

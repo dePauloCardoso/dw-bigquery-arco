@@ -1,0 +1,21 @@
+dbt_arco:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT_ID', 'dw-arco') }}"
+      dataset: silver
+      keyfile: "{{ env_var('GCP_CREDENTIALS_PATH', '') }}"
+      threads: 4
+      timeout_seconds: 300
+      location: US
+
+    prod:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID', 'dw-arco') }}"
+      dataset: silver
+      threads: 4
+      timeout_seconds: 300
+      location: US

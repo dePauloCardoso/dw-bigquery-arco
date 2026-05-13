@@ -4,13 +4,12 @@ from extractor.bronze_loader import BronzeLoader
 
 logger = logging.getLogger(__name__)
 
-# Mapeamento: nome da tabela no BigQuery → endpoint da API
 ENDPOINTS = {
     "wms_order_hdr": "order_hdr",
     "wms_order_dtl": "order_dtl",
 }
 
-def run(last_hours: int = 24):
+def run(last_hours: int = 2):
     client = WMSClient()
     loader = BronzeLoader()
 

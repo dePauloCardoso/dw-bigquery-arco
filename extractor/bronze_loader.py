@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime, timezone
+import os
 
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -12,13 +13,25 @@ logger = logging.getLogger(__name__)
 
 class BronzeLoader:
     def __init__(self):
-        credentials = service_account.Credentials.from_service_account_file(
-            settings.GCP_CREDENTIALS_PATH
-        )
-        self.client = bigquery.Client(
-            project=settings.GCP_PROJECT_ID,
-            credentials=credentials,
-        )
+        if settings.GCP_CREDENTIALS_PATH:
+            # Constrói o caminho absoluto para o arquivo de credenciais
+            # BASE_DIR aponta para a raiz do projeto (onde main.py e o JSON estão)
+            # Isso garante que o caminho seja resolvido corretamente, independentemente de onde o script é executado.
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',))
+            credentials_path = os.path.join(base_dir, settings.GCP_CREDENTIALS_PATH)
+
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path
+            )
+            self.client = bigquery.Client(
+                project=settings.GCP_PROJECT_ID,
+                credentials=credentials,
+            )
+            logger.info(f"BigQuery autenticado via service account file: {credentials_path}.")
+        else:
+            self.client = bigquery.Client(project=settings.GCP_PROJECT_ID)
+            logger.info("BigQuery autenticado via Application Default Credentials.")
+
         self.dataset = settings.GCP_DATASET_BRONZE
 
     def ensure_dataset_exists(self):

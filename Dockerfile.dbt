@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Dependências do sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instala dbt e o adapter do BigQuery
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia o projeto dbt e o runner
+COPY dbt_arco/ dbt_arco/
+COPY config/ config/
+COPY dbt_runner.py .
+
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "dbt_runner.py"]

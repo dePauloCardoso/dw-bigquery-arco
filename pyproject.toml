@@ -15,7 +15,8 @@ dependencies = [
     "python-dotenv (>=1.2.2,<2.0.0)",
     "tzdata (>=2026.2,<2027.0)",
     "dbt-core (>=1.11.8,<2.0.0)",
-    "dbt-bigquery (>=1.11.1,<2.0.0)"
+    "dbt-bigquery (>=1.11.1,<2.0.0)",
+    "google-cloud-run (>=0.16.0,<0.17.0)"
 ]
 
 

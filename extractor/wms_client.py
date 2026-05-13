@@ -19,7 +19,7 @@ class WMSClient:
             "Accept": "application/json",
         })
 
-    def get_records(self, endpoint: str, last_hours: int = 2) -> list:
+    def get_records(self, endpoint: str, last_hours: int = 6) -> list:
         now = datetime.now(SP_TZ)
         mod_ts_lt  = now.strftime("%Y-%m-%dT%H:%M:%S")
         mod_ts_gte = (now - timedelta(hours=last_hours)).strftime("%Y-%m-%dT%H:%M:%S")
@@ -38,6 +38,11 @@ class WMSClient:
             }
 
             response = self.session.get(url, params=params)
+
+            if response.status_code == 404:
+                logger.info(f"'{endpoint}' | Nenhum registro encontrado no período.")
+                break
+
             response.raise_for_status()
             data = response.json()
 
