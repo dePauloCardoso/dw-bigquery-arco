@@ -130,7 +130,10 @@ select
 from {{ source('bronze', 'wms_order_hdr') }}
 
 {% if is_incremental() %}
-where _ingested_at > (select max(_ingested_at) from {{ this }})
+where _ingested_at > coalesce(
+    (select max(_ingested_at) from {{ this }}),
+    timestamp('1900-01-01')
+)
 {% endif %}
 
 qualify row_number() over (
