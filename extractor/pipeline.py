@@ -5,7 +5,7 @@ from extractor.bronze_loader import BronzeLoader
 logger = logging.getLogger(__name__)
 
 ENDPOINTS = {
-    "wms_order_hdr": "order_hdr",
+    # "wms_order_hdr": "order_hdr",
     "wms_order_dtl": "order_dtl",
 }
 

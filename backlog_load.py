@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from requests.adapters import HTTPAdapter # Importar HTTPAdapter
+from urllib3.util.retry import Retry # Importar Retry
 
 from config.settings import settings
 
@@ -25,23 +27,44 @@ def get_bq_client() -> bigquery.Client:
 
 def fetch_all_pages(entity: str) -> list[dict]:
     records = []
-    url = f"{settings.WMS_BASE_URL}/entity/{entity}?page=1"
+    url = f"{settings.WMS_BASE_URL}/entity/{entity}" # Removido ?page=1 daqui
     page = 1
-    headers = {
-        "Authorization": settings.WMS_AUTHORIZATION,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
+    headers = {"Authorization": settings.WMS_AUTHORIZATION}
 
-    while url:
+    # Configurar retries para a sessão
+    session = requests.Session()
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    session.headers.update(headers) # Adicionar headers à sessão
+
+    while True: # Loop infinito, será quebrado por 'break'
+        params = {"page": page} # Parâmetros da página
         logger.info(f"[{entity}] Página {page}...")
-        response = requests.get(url, headers=headers, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        records.extend(data.get("results", []))
-        url = data.get("next_page")
-        page += 1
-        time.sleep(0.2)
+        try:
+            response = session.get(url, params=params, timeout=120) # Aumentei o timeout para 120s
+            response.raise_for_status()
+            data = response.json()
+
+            records.extend(data.get("results", []))
+
+            # Verifica se há mais páginas. A API do WMS que você está usando
+            # retorna 'next_page' ou 'page_count'.
+            # Se 'next_page' for null ou não existir, ou se 'page' atingir 'page_count',
+            # então não há mais páginas.
+            page_count = data.get("page_count")
+            next_page_url = data.get("next_page")
+
+            if not next_page_url and (page_count is None or page >= page_count):
+                break # Não há mais páginas
+
+            page += 1
+            time.sleep(0.5) # Aumentei o sleep para dar mais tempo entre as requisições
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Erro na requisição para [{entity}] página {page}: {e}")
+            # Se o erro for um SSLError, pode ser que retries não ajude muito,
+            # mas o Retry configurado na sessão já tentará novamente.
+            # Se ainda assim falhar após as retries, o erro será levantado.
+            raise # Re-levanta a exceção após as retries falharem
 
     logger.info(f"[{entity}] Total coletado: {len(records)} registros")
     return records
@@ -84,7 +107,7 @@ def main():
     client = get_bq_client()
 
     entities = [
-        ("order_hdr", f"{settings.GCP_PROJECT_ID}.{settings.GCP_DATASET_BRONZE}.wms_order_hdr"),
+        # ("order_hdr", f"{settings.GCP_PROJECT_ID}.{settings.GCP_DATASET_BRONZE}.wms_order_hdr"),
         ("order_dtl", f"{settings.GCP_PROJECT_ID}.{settings.GCP_DATASET_BRONZE}.wms_order_dtl"),
     ]
 
